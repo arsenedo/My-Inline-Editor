@@ -14,8 +14,9 @@ export default class InlineEditor {
         this.customColorPicker = new CustomColorPicker(".color-picker-label");
     }
 
-    generateTextEditor = (pos = 'TOP') => {
+    generateTextEditor = () => {
         const generateActionBtn = (btnText, styles, callback) => {
+
             const actionWrapper = document.createElement('div');
             actionWrapper.classList.add('action-wrapper');
 
@@ -29,6 +30,7 @@ export default class InlineEditor {
 
             actionBtn.addEventListener('mousedown', (e) => {
                 actionBtn.classList.toggle('active');
+
                 callback();
             });
 
@@ -95,9 +97,8 @@ export default class InlineEditor {
         this.popup.classList.add('text-editor-popup');
 
         this.popup.style.position = 'absolute';
-        this.popup.style.top = `-${defaultStyles.height + defaultStyles.margin + inputRect.height}px`;
-        this.popup.style.left = `${parseInt(this.input.style.left, 10) + inputRect.width / 2}px`;
-        this.popup.style.transform = 'translateX(-50%)';
+        this.popup.style.top = `-${defaultStyles.height + defaultStyles.margin}px`;
+        this.popup.style.left = `-${defaultStyles.width / 2 - this.input.getBoundingClientRect().width/2}px`;
         this.popup.style.width = `${defaultStyles.width / defaultStyles.rem}rem`;
         this.popup.style.height = `${defaultStyles.height / defaultStyles.rem}rem`;
         this.popup.id = 'text-editor-popup';
@@ -124,7 +125,7 @@ export default class InlineEditor {
         const currFont = css(this.input, 'font-family');
 
         fontSelect.addEventListener('optionPick', (e) => {
-            this.input.style.fontFamily = `${e.detail}`;
+            this.execCommand('fontName', e.detail)
         });
 
         const sizeArray = [];
@@ -139,7 +140,7 @@ export default class InlineEditor {
         const currentFontSize = css(this.input, 'font-size');
 
         fontSizeSelect.addEventListener('optionPick', (e) => {
-            this.input.style.fontSize = `${e.detail / 16}rem`;
+            this.execCommand('fontSize', e.detail);
         });
 
         popupWrapper.appendChild(fontPicker);
@@ -148,7 +149,7 @@ export default class InlineEditor {
         const backgroundPicker = generateColorUpdateBtn(
             'bgColorPicker',
             (e, colorPicker) => {
-                this.input.style.backgroundColor = colorPicker.value;
+                    this.execCommand('hiliteColor', colorPicker.value);
                 },
             { backgroundImage: 'url("public/svg/fill.svg")', gridArea: 'background-picker' }
             );
@@ -159,8 +160,9 @@ export default class InlineEditor {
         const boldWrapper = generateActionBtn(
             'B',
             { fontWeight: 'bold' },
-            () => (this.input.classList.contains('bold')
-                ? this.input.classList.remove('bold') : this.input.classList.add('bold'))
+            () => {
+                this.execCommand('bold');
+            }
         );
         popupWrapper.appendChild(boldWrapper);
 
@@ -168,7 +170,9 @@ export default class InlineEditor {
         const italicWrapper = generateActionBtn(
             'I',
             { fontStyle: 'italic', fontFamily: 'serif' },
-            () => this.input.classList.toggle('italic')
+            () => {
+                this.execCommand('italic')
+            }
         );
         popupWrapper.appendChild(italicWrapper);
 
@@ -176,7 +180,9 @@ export default class InlineEditor {
         const underlineWrapper = generateActionBtn(
             'U',
             { textDecoration: 'underline' },
-            () => this.input.classList.toggle('underline')
+            () => {
+                this.execCommand('underline')
+            }
         );
 
         popupWrapper.appendChild(underlineWrapper);
@@ -185,7 +191,9 @@ export default class InlineEditor {
         const lineThroughWrapper = generateActionBtn(
             'ab',
             { textDecoration: 'line-through' },
-            () => this.input.classList.toggle('line-through')
+            () => {
+                this.execCommand('strikeThrough');
+            }
         );
 
         popupWrapper.appendChild(lineThroughWrapper);
@@ -193,8 +201,10 @@ export default class InlineEditor {
         // SUB TEXT
         const subWrapper = generateActionBtn(
             'x<sub>2</sub>',
-            {},
-            () => console.log('TODO SUB BTN')
+            {fontSize: '0.75rem'},
+            () => {
+                this.execCommand('subscript');
+            }
         );
 
         popupWrapper.appendChild(subWrapper);
@@ -203,7 +213,9 @@ export default class InlineEditor {
         const supWrapper = generateActionBtn(
             'x<sup>2</sup>',
             {},
-            () => console.log('TODO SUP BTN')
+            () => {
+                this.execCommand('superscript');
+            }
         );
 
         popupWrapper.appendChild(supWrapper);
@@ -211,8 +223,8 @@ export default class InlineEditor {
         // TEXT COLOR PICKER
         const textColorPicker = generateColorUpdateBtn(
             'textColorPicker',
-            (e, colorPicker) => {
-                this.input.style.color = colorPicker.value;
+            (e, colorPickerInput) => {
+                    this.execCommand('foreColor', colorPickerInput.value);
                 },
             { backgroundImage: 'url("public/svg/text_color.svg")', gridArea: 'color-picker' }
         );
@@ -223,6 +235,10 @@ export default class InlineEditor {
 
         return this.popup;
     };
+
+    execCommand(command, value = null) {
+        document.execCommand(command, false, value);
+    }
 
     destroy() {
         this.popup.remove();

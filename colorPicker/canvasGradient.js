@@ -3,6 +3,8 @@ export default class CanvasGradient extends EventTarget {
 
     #isDragging = false;
 
+    marker;
+
     constructor(canvas) {
         super();
         this.canvas = canvas;
@@ -20,7 +22,7 @@ export default class CanvasGradient extends EventTarget {
             const colorCanvasRect = this.canvas.getBoundingClientRect();
             let x = event.clientX - colorCanvasRect.x;  // Get X coordinate
             let y = event.clientY - colorCanvasRect.y;  // Get Y coordinate
-            this.colorData = this.ctx.getImageData(x, y, 1, 1)['data'];   // Read pixel Color
+            this.colorData = this.ctx.getImageData(x, y, 1, 1)['data']; // Read pixel Color
 
             this.dispatchEvent(new CustomEvent('updateColor', {
                 detail: { colorData : this.colorData }
@@ -29,6 +31,7 @@ export default class CanvasGradient extends EventTarget {
 
         document.addEventListener('mouseup', () => {
             this.#isDragging = false;
+            this.canvas.classList.remove('active');
         });
 
         this.updateCanvasGradient(0);

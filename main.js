@@ -12,13 +12,13 @@ function closeTextEditor() {
 
 
 window.addEventListener("load", () => {
-   const input_lbls = document.querySelectorAll(".input-lbl");
+   const input_lbls = document.querySelectorAll("#input-div");
    input_lbls.forEach(lbl => {
-      lbl.addEventListener("focusin", (e) => {
+      lbl.addEventListener("focusin", () => {
           openTextEditor(lbl);
       });
 
-      lbl.addEventListener("focusout", (e) => {
+      lbl.addEventListener("focusout", () => {
           closeTextEditor();
       })
    });
