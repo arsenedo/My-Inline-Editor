@@ -11,13 +11,15 @@ export default class CustomFontSizeSelect extends AbstractCustomSelect {
 
         this.selectWrapper.classList.add('font-size-select');
 
-        this.chosenOption.textContent = this.data[0].size;
+        this.chosenOption.textContent = this.data[0].name;
+        this.chosenOption.style.textTransform = 'uppercase'
     }
 
     generateOption(item) {
         const selectOption = document.createElement('div');
         selectOption.classList.add('select-option');
-        selectOption.innerText = item.size;
+        selectOption.innerText = item.name;
+        selectOption.style.textTransform = 'uppercase';
 
         setTimeout(() => {
             selectOption.style.height = `${this.selectWrapper.getBoundingClientRect().height}px`;
@@ -26,12 +28,12 @@ export default class CustomFontSizeSelect extends AbstractCustomSelect {
         selectOption.addEventListener('mousedown', (e) => {
             e.preventDefault();
 
-            this.chosenOption.textContent = item.size;
-            this.chosenOption.setAttribute('data-font-size', item.size);
+            this.chosenOption.textContent = item.name;
+            this.chosenOption.setAttribute('data-font-size', item.value);
 
             this.optionsWrapper.classList.toggle('none');
 
-            this.optionPickEvent = new CustomEvent('optionPick', { detail: item.size });
+            this.optionPickEvent = new CustomEvent('optionPick', { detail: item.value });
             this.dispatchEvent(this.optionPickEvent);
         });
 

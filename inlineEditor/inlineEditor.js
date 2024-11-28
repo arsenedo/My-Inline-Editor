@@ -9,6 +9,27 @@ export default class InlineEditor {
 
     popup;
 
+    isOpen;
+
+    actionButtons = {
+        b : undefined,
+        i : undefined,
+        u : undefined,
+        strike : undefined,
+        sub : undefined,
+        sup : undefined,
+    }
+
+    fontButtons = {
+        fontFamily : undefined,
+        fontSize : undefined
+    }
+
+    colorButtons = {
+        bgColor : undefined,
+        foreColor : undefined,
+    }
+
     constructor(input) {
         this.input = input;
         this.customColorPicker = new CustomColorPicker(".color-picker-label");
@@ -16,9 +37,8 @@ export default class InlineEditor {
 
     generateTextEditor = () => {
         const generateActionBtn = (btnText, styles, callback) => {
-
-            const actionWrapper = document.createElement('div');
-            actionWrapper.classList.add('action-wrapper');
+            //const actionWrapper = document.createElement('div');
+            //actionWrapper.classList.add('action-wrapper');
 
             const actionBtn = document.createElement('button');
             actionBtn.classList.add('action-btn');
@@ -34,9 +54,14 @@ export default class InlineEditor {
                 callback();
             });
 
-            actionWrapper.appendChild(actionBtn);
+            actionBtn.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            })
 
-            return actionWrapper;
+            //actionWrapper.appendChild(actionBtn);
+
+            return actionBtn;
         };
 
         const generateColorUpdateBtn = (id, callback, styles = {},) => {
@@ -49,7 +74,8 @@ export default class InlineEditor {
             colorFillBtn.classList.add('color-fill-btn');
             if (styles?.backgroundImage) colorFillBtn.style.backgroundImage = styles.backgroundImage;
             colorFillBtn.addEventListener('mousedown', (e) => {
-                callback(e, colorPickerInput);
+                colorFillBtn.setAttribute('data-color', colorPickerInput.value)
+                callback(e, colorFillBtn);
             });
 
             colorWrapper.appendChild(colorFillBtn);
@@ -107,6 +133,10 @@ export default class InlineEditor {
         this.popup.addEventListener('mousedown', (e) => {
             e.preventDefault();
         });
+        this.popup.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        })
 
         // POPUP WRAPPER
         const popupWrapper = document.createElement('div');
@@ -128,10 +158,36 @@ export default class InlineEditor {
             this.execCommand('fontName', e.detail)
         });
 
-        const sizeArray = [];
-        for (let i = 2; i <= 72; i += 2) {
-            sizeArray.push({ size: i });
-        }
+        const sizeArray = [
+            {
+                name: "xxs",
+                value: 1
+            },
+            {
+                name: "xs",
+                value: 2
+            },
+            {
+                name: "s",
+                value: 3
+            },
+            {
+                name: "md",
+                value: 4,
+            },
+            {
+                name: "lg",
+                value: 5
+            },
+            {
+                name: "xl",
+                value: 6
+            },
+            {
+                name: "xxl",
+                value: 7
+            }
+        ];
 
         const fontSizeSelect = new CustomFontSizeSelect(sizeArray);
         fontSizeSelect.generateCustomSelect();
@@ -149,7 +205,7 @@ export default class InlineEditor {
         const backgroundPicker = generateColorUpdateBtn(
             'bgColorPicker',
             (e, colorPicker) => {
-                    this.execCommand('hiliteColor', colorPicker.value);
+                    this.execCommand('hiliteColor', colorPicker.getAttribute('data-color'));
                 },
             { backgroundImage: 'url("public/svg/fill.svg")', gridArea: 'background-picker' }
             );
@@ -164,6 +220,7 @@ export default class InlineEditor {
                 this.execCommand('bold');
             }
         );
+        this.actionButtons.b = boldWrapper;
         popupWrapper.appendChild(boldWrapper);
 
         // ITALIC TEXT
@@ -174,6 +231,7 @@ export default class InlineEditor {
                 this.execCommand('italic')
             }
         );
+        this.actionButtons.i = italicWrapper;
         popupWrapper.appendChild(italicWrapper);
 
         // UNDERLINE TEXT
@@ -184,7 +242,7 @@ export default class InlineEditor {
                 this.execCommand('underline')
             }
         );
-
+        this.actionButtons.u = underlineWrapper;
         popupWrapper.appendChild(underlineWrapper);
 
         // LINE-THROUGH TEXT
@@ -195,7 +253,7 @@ export default class InlineEditor {
                 this.execCommand('strikeThrough');
             }
         );
-
+        this.actionButtons.strike = lineThroughWrapper;
         popupWrapper.appendChild(lineThroughWrapper);
 
         // SUB TEXT
@@ -206,7 +264,7 @@ export default class InlineEditor {
                 this.execCommand('subscript');
             }
         );
-
+        this.actionButtons.sub = subWrapper;
         popupWrapper.appendChild(subWrapper);
 
         // SUP TEXT
@@ -217,14 +275,14 @@ export default class InlineEditor {
                 this.execCommand('superscript');
             }
         );
-
+        this.actionButtons.sup = supWrapper;
         popupWrapper.appendChild(supWrapper);
 
         // TEXT COLOR PICKER
         const textColorPicker = generateColorUpdateBtn(
             'textColorPicker',
             (e, colorPickerInput) => {
-                    this.execCommand('foreColor', colorPickerInput.value);
+                    this.execCommand('foreColor', colorPickerInput.getAttribute('data-color'));
                 },
             { backgroundImage: 'url("public/svg/text_color.svg")', gridArea: 'color-picker' }
         );
@@ -232,6 +290,8 @@ export default class InlineEditor {
         popupWrapper.appendChild(textColorPicker);
 
         this.input.parentElement.appendChild(this.popup);
+
+        this.isOpen = true;
 
         return this.popup;
     };
@@ -243,5 +303,49 @@ export default class InlineEditor {
     destroy() {
         this.popup.remove();
         this.customColorPicker.colorPickerWrapper.remove();
+        this.isOpen = false;
+    }
+
+    handleActiveOptions() {
+        console.log("Handle active options")
+        this.clearActive();
+
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0);
+
+        // Helper to collect ancestors of a node up to the input-div
+        function collectAncestors(node) {
+            const ancestors = [];
+            while (node && node.id !== "input-div") {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    ancestors.push(node);
+                }
+                node = node.parentNode; // Move to the parent
+            }
+            return ancestors;
+        }
+
+        // Get ancestors for both start and end containers
+        const startAncestors = collectAncestors(range.startContainer);
+        const endAncestors = collectAncestors(range.endContainer);
+
+        // Combine both lists, ensuring no duplicates
+        const fullTree = Array.from(new Set([...startAncestors, ...endAncestors]));
+
+        fullTree.forEach((tag) => {
+            const tagName = tag.tagName.toLowerCase();
+
+            if(tagName === "font" || tagName === "span") return;
+
+            // Everything else
+            this.actionButtons[tagName].classList.add('active');
+        });
+    }
+
+    clearActive = () => {
+        Object.keys(this.actionButtons).forEach((key) => {
+            if (!this.actionButtons[key]) return;
+            this.actionButtons[key].classList.remove('active');
+        });
     }
 }

@@ -5,7 +5,7 @@ export default class CustomColorPicker {
     constructor(selector) {
         this.setupGui();
 
-        this.connectToElements(selector)
+        this.connectToElements(selector);
     }
 
     defaultConfig = {
@@ -24,10 +24,10 @@ export default class CustomColorPicker {
     hueSlider;
     alphaSlider;
 
-    colorData = [255, 0, 0]
+    colorData = [255, 0, 0];
     opacity = 1;
 
-    currentTarget
+    currentTarget;
 
     setupGui() {
         this.colorPickerWrapper = document.createElement('div');
@@ -47,8 +47,8 @@ export default class CustomColorPicker {
         this.canvas = document.createElement('canvas');
         this.canvas.classList.add('color-picker-canvas');
         this.canvas.id = 'color-picker-canvas';
-        this.canvas.width = this.defaultConfig.width
-        this.canvas.height = this.defaultConfig.height/2
+        this.canvas.width = this.defaultConfig.width;
+        this.canvas.height = this.defaultConfig.height/2;
         this.canvas.style.width = this.defaultConfig.width + 'px';
         this.canvas.style.height = this.defaultConfig.height/2 + 'px';
 
